@@ -1,0 +1,46 @@
+---
+title: "R for Data Science"
+subtitle: 'Chapter 4 Exercises'
+author: "Robert Kirk DeLisle"
+output: html_document
+---
+
+```{r include=FALSE}
+library(tidyverse)
+```
+
+## Chapter 4 - Workflow: scripts
+
+###4.4 Exerices
+
+**1. Why does this code not work?**
+
+```{r}
+my_variable <- 10
+#my_varıable
+```
+
+The character used for 'i' in the second line is not consistent with that used in the first line.  Unicode character?  The two variables are essentially diferent names.
+
+**2.  Tweak each of the following R commands so that they run correctly:**
+
+```{r}
+library(tidyverse)
+
+# original code
+# ggplot(dota = mpg) + 
+#   geom_point(mapping = aes(x = displ, y = hwy))
+# fliter(mpg, cyl = 8)
+# filter(diamond, carat > 3)
+
+ggplot(data = mpg) + # data was spelled with an 'o'
+  geom_point(mapping = aes(x = displ, y = hwy))
+
+filter(mpg, cyl == 8) # filter was misspelled, need '==' instead of '='
+filter(diamonds, carat > 3) # diamonds lacked the 's'
+```
+
+**3. Press Alt + Shift + K.  What happens?  How can you get to the same place using the menus?**
+
+On the Mac, Option + Shift + K give a table of keyboard shortcuts.  From the menu, Tools -> Keyboard Shortcuts Help.
+
