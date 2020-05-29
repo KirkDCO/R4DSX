@@ -7,7 +7,196 @@ output: html_document
 
 ```{r include=FALSE}
 library(tidyverse)
+library(nycflights13)
 ```
 
 ## Chapter 5 - Data Transformations
+
+### 5.2.4 Exercises
+
+**1. Find all flights that: **
+
+    **1.  Had an arrival delay of two or more hours**
+    **2.  Flies to Houston (`IAH` of `HOU`)**
+    **3.  Were operated by United, American, or Delta**
+    **4.  Departed in summer (July, August, and September)**
+    **5.  Arrived more than two hours late, but didn't leave late**
+    **6.  Were delayed by at least an hour but mad up over 30 minutes in flight**
+    **7.  Departed between midnight and 6 am (inclusive)** 
+    
+```{r}
+# 1
+f <- filter(flights, arr_delay >= 2)
+range(f$arr_time)
+
+# 2
+f <- filter(flights, dest %in% c('IAH','HOU'))
+unique(f$dest)
+
+# 3
+f <- filter(flights, carrier %in% c('AA','UA','DL'))
+unique(f$carrier)
+
+# 4
+f <- filter(flights, month %in% c(7,8,9))
+unique(f$month)
+
+# 5
+f <- filter(flights, arr_delay > 120 & dep_delay <= 0)
+head(f)
+  
+# 6
+f <- filter(flights, dep_delay >= 60, dep_delay - arr_delay >= 30)
+head(f)
+
+# 7
+f <- filter(flights, dep_time == 2400 | dep_time <= 600)
+range(f$dep_time)
+```
+
+**2. Another useful dplyr filter helper is `between()`.   What does it do?  Can you use it to simply the code needed to answer the previous challenges?**
+
+From the help file:  This is a shortcut for x >= left & x <= right.
+
+It can be used to change a few of the challenges from 1, above.  
+
+```{r}
+# 4
+f <- filter(flights, between(month, 7, 9))
+unique(f$month)
+
+# 7 
+f <- filter(flights, dep_time == 2400 | between(dep_time, 1, 600))
+range(f$dep_time)
+```
+
+**3. How many flights have missing `dep_time`?  What other variables are missing?  What might these rows represent?**
+
+Looking at the table, `dep_delay`, `arr_time`, `arr_delay`, `air_time` are all missing.  These are probably cancelled flights.
+
+```{r}
+nrow(f <- filter(flights, is.na(dep_time)))
+```
+ 
+**4. Why is `NA ^ 0` not missing?  Why is `NA | TRUE` not missing?  Why is `FALSE & NA` not missing?  Can you figure out a general rule?  (`NA * 0` is a tricky counterexample!)**
+
+`NA ^ 0` - any number to 0 power is 1
+
+`NA | TRUE` - the or operator (`|`) allows one `TRUE` value to override the `NA`
+
+`FALSE & NA` - the & operator ('&') finds one `FALSE` and thus returns `FALSE`
+
+Generally, when we consider the context of any operation, if the mathematical or logical result for any possible value of `NA` is computable, that value is returned.  `NA * 0` doesn't work becuase of potential imprecision in the value of the `NA`.
+ 
+ ### 5.3.1 Exercises
+ 
+ **1. How could you use `arrange()` to sort all missing values to the start?  (Hint: use `is.na()` ).**
+ 
+```{r}
+arrange(flights, desc(is.na(dep_time)))
+```
+ 
+ **2.  Sort `flights` to find the most delayed flights.  Find the flights that left the earliest.**
+ 
+```{r}
+arrange(flights, desc(dep_delay))
+arrange(flights, dep_delay)
+```
+
+**3.  Sort `flights` to find the fastest (highest speed) flights.**
+
+```{r}
+arrange(flights, distance/air_time)
+```
+
+**4. Which flights travelled the farthest?  Which travelled the shortest?**
+
+```{r}
+arrange(flights, desc(distance))
+arrange(flights, distance)
+```
+
+### 5.4.1 Exercises
+
+**1. Brainstorm as many ways as possible to select `dep_time`, `dep_delay`, `arr_time`, and `arr_delay` from `flights`.**
+
+```{r}
+select(flights, starts_with('dep'), starts_with('arr'))
+```
+
+**2.  What happens if you include the name of a variable multiple times in a `select()` call?**
+
+The repeated variable is only selected once.
+
+```{r}
+select(flights, dep_time, dep_time) 
+```
+
+**3.  What does the `one_of()` function do?  Why might it be helpful in conjunction with this vector?**
+
+`one_of` is retired, but it appears to select all of the variables listed in the `vars` vector.  Help file suggests using `any_of` or `all_of` instead.
+
+```{r}
+vars <- c('year', 'month', 'day', 'dep_delay', 'arr_delay')
+select(flights, one_of(vars))
+```
+
+**4.  Does the result of running the following code surprise you?  How do the select helpers deal with case by default?  How can you change that default?**
+
+Apparently, the default is to ignore case.  The `contains()` function has a parameter called `ignore.case` which is `TRUE` by default.
+
+```{r}
+select(flights, contains('TIME'))
+```
+
+### 5.5.2 Exercises
+
+**1.  Currently `dep_time` and `sched_dep_time` are convenient to look at, but hard to compute with because they're not really continuous numbers.  Convert them to a more convenient representation of number of minutes since mindnight.**
+
+```{r}
+f <- mutate(flights, deptime_min = as.integer(dep_time/100)*60 + 
+                                   100*(dep_time/100 - as.integer(dep_time/100)),
+                     arrtime_min = as.integer(arr_time/100)*60 +
+                                   100*(arr_time/100 - as.integer(arr_time/100)))
+head(select(f, one_of(c('dep_time', 'deptime_min', 'arr_time', 'arrtime_min'))))
+```
+
+**2.  Compare `air_time` with `arr_time - dep_time`.  What do you expect to see?  What do you see?  What do you need to do to fix it?**
+
+```{r}
+f <- select(flights, air_time, arr_time, dep_time)
+head(mutate(f, delta = arr_time - dep_time))
+```
+
+The subtraction doesn't take into account that `air_time`, `arr_time` and `dep_time` are in `HHMM` format.  They need to be converted as done in 1, above.
+
+**3. Compare `dep_time`, `sched_dep_time`, and `dep_delay`.  How would you expect those three number to be related?**
+
+`dep_delay` should be the difference in minutes between `dep_time` and `sched_dep_time`.
+
+```{r}
+f <- select(flights, dep_delay, dep_time, sched_dep_time)
+head(f)
+```
+
+
+**4.  Find the 10 most delayed flights using a ranking function.  How do you want to handle ties?  Carefully read teh documentation of `min_rank()`.**
+
+By default, `min_rank()` assigned the minimum value of the tied values the same rank.  There is no way to adjust this.
+
+```{r}
+arrange(flights, desc(min_rank(dep_delay)))
+```
+
+**5.  What does `1:3 + 1:10` return?  Why?**
+
+An error because the vectors are not of the same length.
+
+**6.  What trigonometric function does R provide?**
+
+sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, asinh, acosh, atanh
+
+### 5.6.7 Exercises
+
+### 5.7.1 Exercises
 
