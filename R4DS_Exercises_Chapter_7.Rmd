@@ -136,3 +136,31 @@ ggplot(data = diamonds, mapping = aes(x = cut, y = price)) +
 
 **6. If you have a small dataset, it’s sometimes useful to use `geom_jitter()` to see the relationship between a continuous and categorical variable. The ggbeeswarm package provides a number of methods similar to `geom_jitter()`. List them and briefly describe what each one does.**
 
+### 7.5.2.1 Exercises
+
+**1.  How could you rescale the count dataset above to more clearly show the distribution of cut within colour, or colour within cut?**
+
+```{r}
+diamonds %>% 
+  count(color, cut) %>%  
+  group_by(color) %>% 
+  mutate(prop = n / sum(n)) %>% 
+  ggplot(mapping = aes(x = color, y = cut)) +
+    geom_tile(mapping = aes(fill = prop))
+```
+
+**2.  Use `geom_tile()` together with dplyr to explore how average flight delays vary by destination and month of year. What makes the plot difficult to read? How could you improve it?**
+
+There are a huge number of unordered values to accomodate all destinations.  They should be groped by `n` or clustered in some way.
+
+```{r}
+flights %>% 
+  count(dest, month) %>% 
+  ggplot() + 
+  geom_tile(mapping = aes(x = month, y = dest, fill = n))
+```
+
+**3. Why is it slightly better to use aes(x = color, y = cut) rather than aes(x = cut, y = color) in the example above?**
+
+Using the larger number of categories on the y-axis improves readability if the labels overlap when on the x-axis.
+
