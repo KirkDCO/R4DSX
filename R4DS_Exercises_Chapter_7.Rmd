@@ -164,3 +164,48 @@ flights %>%
 
 Using the larger number of categories on the y-axis improves readability if the labels overlap when on the x-axis.
 
+### 7.5.3.1 Exercises
+
+**1. Instead of summarising the conditional distribution with a boxplot, you could use a frequency polygon. What do you need to consider when using `cut_width()` vs `cut_number()`? How does that impact a visualisation of the 2d distribution of carat and price?**
+
+```{r}
+ggplot(
+  data = diamonds, 
+  mapping = aes(color = cut_number(carat,5), x=price)
+) + 
+  geom_freqpoly()
+```
+
+**2.Visualise the distribution of carat, partitioned by price.**
+
+```{r}
+ggplot(data = diamonds,
+       mapping = aes(x=price, y=carat)) +
+  geom_boxplot(mapping = aes(group = cut_number(price, 20))) +
+  coord_flip()
+```
+
+**3.  How does the price distribution of very large diamonds compare to small diamonds? Is it as you expect, or does it surprise you?**
+
+The price for very large diamonds has much more variability.
+
+**4.  Combine two of the techniques you’ve learned to visualise the combined distribution of cut, carat, and price.**
+
+```{r}
+ggplot(diamonds, aes(x = cut_number(carat, 5), y=price, color = cut)) +
+  geom_boxplot()
+```
+
+**5.  Two dimensional plots reveal outliers that are not visible in one dimensional plots. For example, some points in the plot below have an unusual combination of x and y values, which makes the points outliers even though their x and y values appear normal when examined separately.**
+
+```{r}
+ggplot(data = diamonds) + 
+  geom_point(mapping = aes(x=x, y=y)) + 
+  coord_cartesian(xlim = c(4,11), ylim=c(4,11))
+```
+
+**Why is a scatterplot a better display than a binned plot for this case?**
+
+Any binning operation will likely lose the single outliers that exist off the line partly due to the very high density of points on the line.
+
+
