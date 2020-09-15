@@ -66,8 +66,8 @@ The various arguments all specification of the format for dates, times, grouping
 
 ```{r}
 # an error occurs when deimal_mark and grouping_mark are the same - they must be different
-parse_number("123,456,789", 
-             locale = locale(decimal_mark = ',', grouping_mark = ','))
+#parse_number("123,456,789", 
+#             locale = locale(decimal_mark = ',', grouping_mark = ','))
 
 # presumably, grouping mark is set to '.' but I cannot find specific documentation of that
 parse_number("123.456,789", 
