@@ -1,0 +1,86 @@
+---
+title: "R for Data Science"
+subtitle: 'Chapter 10 Exercises'
+author: "Robert Kirk DeLisle"
+output: html_document
+---
+
+```{r include=FALSE}
+library(tidyverse)
+library(nycflights13)
+library(ggstance)
+library(lvplot)
+```
+
+## Chapter 10 - Tibbles
+
+### 10.5 Exercises
+
+**1.  How can you tell if an object is a tibble?**
+
+Printing a data frame produces simply a table of data.  Printing a tibble starts with the line *# A tibble: <number of rows> x <number of columns>*.  Additionallly, th tibble lists the column data type, row numbers in light text at the beginning of each row, and a closing line telling how many additional rows are present in the tibble.
+
+**2.  Compare and contrast the following operations on a `data.frame` and equivalent tibble.  What is different?  Why might the default data frame behaviours cause you frustration?**
+
+```{r}
+df <- data.frame(abc = 1, xyz = "a")
+# no major differences in creation of data frame or tibble
+
+df$x
+# the data frame will match the `xyz` column but the tibble will not
+# this could lead to unexpected behavior if the use of 'x' was accidental - an error should occur, as with a tibble
+
+df[, "xyz"]
+# The data frame will return a vector of one element
+# The tibble will return a 1x1 tibble
+
+df[, c("abc", "xyz")]
+# both will return a new data frame or tibble with the specified columns
+```
+
+**3.  If you have the name of a variable stored in an object, w.g. `var <- "mpg"`, how cna you extract the reference variable from a tibble?**
+
+```{r}
+tb <- tibble(mtcars)
+var <- "mpg"
+tb[var]
+dplyr::select(tb, var)
+```
+
+**4. Practice referring to non-syntactic names in the following data frame by:
+
+1.  Extracting the variable called `1`.
+2.  Plotting a scatterplot of `1` vs `2`.
+3.  Creating a new column call `3` which is `2` divided by `1`.
+4.  Renaming the columns to `one`, `two`, and `three`.**
+
+```{r}
+annoying <- tibble(
+  `1` = 1:10,
+  `2` = `1` * 2 + rnorm(length(`1`))
+)
+
+annoying$`1`
+
+plot(annoying$`1`, annoying$`2`)
+
+annoying$`3` = annoying$`2`/annoying$`1`
+
+annoying <- dplyr::rename(annoying, 'one' = `1`, 
+                                    'two' = `2`,
+                                    'three' = `3`)
+annoying
+```
+
+**5. What does `tibble::enframe()` do?  When might you use it?**
+
+`enframe()` converts named atomic vectors or lists to one- or two-column data frames. For a list, the result will be a nested tibble with a column of type list. For unnamed vectors, the natural sequence is used as name column.
+
+`enframe()` would be useful to create a type of assiciative array.  The value in the `name` column operates as the key to the data object in the `volue` column.
+
+**6.  What option controls how many additional column names are printed at the footer of a tibble?**
+
+The `width` option of `tibble.print()` or `options(tibble.width = <#>)` with `<#>` being the number of additional columns. `options(tibble.width = Inf)` will print all columns.
+
+
+
